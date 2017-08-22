@@ -3,7 +3,15 @@
 	<stdio.h>
 	<stdlib.h>
 
-1503084047 source:c:\users\u584110\documents\workspace_codeblocks\algorithm2\trabajopractico2\tp.c
+1503428882 source:c:\users\u584110\documents\workspace_codeblocks\algorithm2\trabajopractico2\tp.c
 	<stdio.h>
+	<string.h>
 	<stdlib.h>
+	<stdbool.h>
+
+1503406906 source:c:\users\u584110\documents\workspace_codeblocks\algorithm2\trabajopractico2\test.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<stdbool.h>
 
