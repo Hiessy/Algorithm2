@@ -4,7 +4,8 @@
 #include <stdbool.h>
 
 /*
-La idea es construir un menú que permite ingresar el grafo y construya la multilista y luego insertar un vertice con sus aristas,
+La idea es construir un menú que permite ingresar el grafo y construya la multilista y
+luego insertar un vertice con sus aristas,
 eliminar un vertice, calcular el grado de cada vertice y determinar si es completo.
 */
 
@@ -20,7 +21,6 @@ typedef struct subnode {
 }subnode;
 
 struct node *raiz = NULL;
-struct node *current = NULL;
 
 int menu(){
 		int opcion = 0;
@@ -54,12 +54,7 @@ void mostrar() {
 
     struct node *ptr = raiz;
     struct subnode *sbl;
-
-    int size = length();
-
-    printf("\n  El Grafo: [ ");
-
-    //start from the beginning
+    printf("\n  El Grafo:\n [ \n");
     while(ptr != NULL) {
         sbl = ptr->sublista;
         printf("(%c) ",ptr->data);
@@ -73,16 +68,16 @@ void mostrar() {
     printf(" ]\n");
 
 }
-// insertar el nodo principal
+
 void insertar(char data) {
    //create a link
     struct node *link = (struct node*) malloc(sizeof(struct node));
     link->data = data;
     link->next = NULL;
-    link->,.klñ = NULL;
-    //FALTA VALIDAR SI ES EL PRIMERO
+    link->sublista = NULL;
+
     if(raiz == NULL){
-   //point first to new first node
+
         raiz = link;
     }else{
         struct node *aux = raiz;
@@ -92,13 +87,13 @@ void insertar(char data) {
         aux->next = link;
     }
 }
-//delete first item
+
 struct node* borrarNodo() {
    struct node *temp = raiz;
    raiz = raiz->next;
    return temp;
 }
-//is list empty
+
 bool isEmpty() {
    return raiz == NULL;
 }
@@ -112,158 +107,173 @@ int length() {
 
    return length;
 }
-void insertarArista(struct subnode *lista, char data){
+void insertarArista(char data, struct node *cabeza){
 
-    struct subnode *sublist = (struct subnode*) malloc(sizeof(struct subnode));
-    sublist->data = data;
-    sublist->next = NULL;
-    subnode *aux = lista;
-    if(aux == NULL){
-        aux = sublist;
+    subnode *subnode = (struct subnode*) malloc(sizeof(struct subnode));
+    subnode->data = data;
+    subnode->next = NULL;
+
+    if(cabeza->sublista == NULL){
+        cabeza->sublista = subnode;
     }else{
-        while(aux->next != NULL ) {
-            aux = aux->next;
-        }
-        aux->next = sublist;
+        struct subnode *current = cabeza->sublista;
+        while (true) {
+            if(current->next == NULL)
+            {
+                current->next = subnode;
+                break;
+            }
+            current = current->next;
+        };
+
     }
+
 }
+struct node* buscarNodo(char key){
+    struct node* current = raiz;
+    if(raiz == NULL) {
+        printf("La lista esta vacia");
+        return NULL;
+    }
+    while(current->data != key) {
+        if(current->next == NULL) {
+            printf("El elemento no esta presente");
+            return NULL;
+        }
+        current = current->next;
+    }
+    return current;
+}
+
 bool buscar(int key){
 
     struct node* current = raiz;
     if(raiz == NULL) {
-        printf("\n  La lista esta vacia ");
         return false;
     }
 
     while(current->data != key) {
         if(current->next == NULL) {
-            printf("\n  No se encontro el vertice (%c) en la lista ", key);
             return false;
         }
         current = current->next;
     }
-    printf("\n  Se encontro el vertice (%c) ", key);
     return true;
 }
 
-bool buscarSubLista(int key){
-
-    struct subnode* aux = raiz->sublista;
-    if(aux == NULL) {
-        printf("\n  La Sublista esta vacia");
-        return false;
-    }
-
-    while(aux->data != key) {
-        if(aux->next == NULL) {
-            printf("\n  No se encontro el vertice (%c) en la sublista", key);
-            return false;
+int buscarSubLista(int key, struct node *cabeza){
+    int count = 0;
+    struct subnode* aux = cabeza->sublista;
+    while(aux != NULL) {
+        if(aux->data == key) {
+            count++;
         }
         aux = aux->next;
     }
-    printf("\n  Se encontro el vertice (%c) ", key);
-    return true;
+
+    return count;
 }
-//delete a link with given key
+
 struct node* borrar(int key){
 
-   //start from the first link
    struct node* current = raiz;
    struct node* previous = NULL;
 
-   //if list is empty
    if(raiz == NULL) {
       return NULL;
    }
-
-   //navigate through list
    while(current->data != key) {
 
-      //if it is last node
       if(current->next == NULL) {
          return NULL;
       } else {
-         //store reference to current link
          previous = current;
-         //move to next link
          current = current->next;
       }
    }
-
-   //found a match, update the link
    if(current == raiz) {
-      //change first to point to next link
       raiz = raiz->next;
    } else {
-      //bypass the current link
       previous->next = current->next;
    }
-
    return current;
 }
 
-void sort(){
-
-   int i, j, k, tempData;
-   struct node *current;
-   struct node *next;
-
-   int size = length();
-   k = size ;
-
-   for ( i = 0 ; i < size - 1 ; i++, k-- ) {
-      current = raiz;
-      next = raiz->next;
-
-      for ( j = 1 ; j < k ; j++ ) {
-
-         if ( current->data > next->data ) {
-            tempData = current->data;
-            current->data = next->data;
-            next->data = tempData;
-         }
-
-         current = current->next;
-         next = next->next;
-      }
-   }
-}
-
 bool opcionValida(int a){
-    if(a < 96 || a > 123){ // a = 97
+    if(a < 96 || a > 123){
         printf("\n  La opcion debe estar entre [a...z]: ");
         return true;
     }
     return false;
 }
 
-void creandoAristas(){
-    int size= -1,i = length(),a = 0, n;
-    struct node* aux = raiz;
+int generarAristasAutomaticamente(int size, char key){
+    int count = 0;
+    node* aux = raiz;
+    while(aux != NULL){
+        count += buscarSubLista():
+
+    }
+}
+
+/*
+*** TODO; NEED TO FINISH verificar si el vertices ya definio en algunas de las sublistas
+*/
+void crearArista(char a){
+
+    int size, n;
+    node* aux = buscarNodo(a);
+    printf("\n  Con cuantos vertices se conecta %c?: ", aux->data);
+    scanf("%d", &size);
+    fflush(stdin);
+    for( n=0;  n < size; n++){
+        printf("\n  Ingresar el vertice numero %d: ",(n+1));
+        do{
+            printf("  ");
+            a = getchar();
+            fflush(stdin);
+        }while(opcionValida(a) || !buscar(a));
+        insertarArista(a,aux);
+
+    }
+}
+
+void crearVertice(){
+    int a;
+    fflush(stdin);
+    printf("\n  Ingrese una letra [a...z] para identificar el vertice: ");
+    do{ //97
+        a = getchar();
+        fflush(stdin);
+    }while(opcionValida(a) || buscar(a));
+    insertar(a);
+    crearArista(a);
+}
+
+
+/*
+*** TODO; NEED TO FINISH verificar si el vertices ya definio en algunas de las sublistas
+*/
+
+void cargandoAristas(){
+    int size= -1,a = 0, n;
+    node* aux = raiz;
 
     while(aux != NULL){
-
-        do{
-            printf("\n  Con cuantos vertices se conecta %c? (No debe ser mayor a %d): ", aux->data, (i-1)); // preguntas cuantas aristas conecta este vertice
-            scanf("%d", &size); // size = 3
-            fflush(stdin);
-        }while(size > (i-1)); // size=-3
-
+        printf("\n  Con cuantos vertices se conecta %c?: ", aux->data); // preguntas cuantas aristas conecta este vertice
+        scanf("%d", &size); // size = 3
+        fflush(stdin);
         for( n=0;  n < size; n++){
             printf("\n  Ingresar el vertice numero %d: ",(n+1));
             do{
                 printf("  ");
                 a = getchar();
                 fflush(stdin);
-                printf("\n  %d",size);
-            }while(opcionValida(a) || (a) == (aux->data) || buscarSubLista(a) || !buscar(a)); // Tres validaciones, es un char valido, no es raiz, no se eleigio ya
-
-            insertarArista(aux->sublista,a); // que sea unico el valor
-            mostrarSubList(aux->sublista);
+            }while(opcionValida(a) || !buscar(a));
+            insertarArista(a,aux);
         }
         aux = aux->next;
     }
-
 }
 
 void creandoGrafo(){
@@ -277,10 +287,8 @@ void creandoGrafo(){
             a = getchar();
             fflush(stdin);
         }while(opcionValida(a) || buscar(a)); // correct seleccion seria un valor numerico entre 96 y 123 menos los numeros ya ingresados
-        insertar(a); // que sea unico el valor
+        insertar(a);
     }
-    creandoAristas();
-
 }
 
 void borrarLista(){
@@ -306,6 +314,7 @@ int main(){
                 printf("  Creando Grafo...", opcion);
                 if(raiz == NULL){
                    creandoGrafo();
+                   cargandoAristas();
                 }else{
                     printf(  "  El grafo ya existe");
                 }
@@ -323,6 +332,7 @@ int main(){
             case 3 :
                 printf("  Agregando un vertice...");
                 printf(  "  \n");
+                crearVertice();
                 break;
             case 4 :
                 printf("  Remover un vertice...");
@@ -351,69 +361,4 @@ int main(){
 	}while(opcion != 7);
 
 
-
-//   insertFirst(1,10);
-//   insertFirst(2,20);
-//   insertFirst(3,30);
-//   insertFirst(4,1);
-//   insertFirst(5,40);
-//   insertFirst(6,56);
-//
-//   printf("Original List: ");
-//
-//   //print list
-//   printList();
-//
-//   while(!isEmpty()) {
-//      struct node *temp = deleteFirst();
-//      printf("\nDeleted value:");
-//      printf("(%d,%d) ",temp->key,temp->data);
-//   }
-//
-//   printf("\nList after deleting all items: ");
-//   printList();
-//   insertFirst(1,10);
-//   insertFirst(2,20);
-//   insertFirst(3,30);
-//   insertFirst(4,1);
-//   insertFirst(5,40);
-//   insertFirst(6,56);
-//
-//   printf("\nRestored List: ");
-//   printList();
-//   printf("\n");
-//
-//   struct node *foundLink = find(4);
-//
-//   if(foundLink != NULL) {
-//      printf("Element found: ");
-//      printf("(%d,%d) ",foundLink->key,foundLink->data);
-//      printf("\n");
-//   } else {
-//      printf("Element not found.");
-//   }
-//
-//   delete(4);
-//   printf("List after deleting an item: ");
-//   printList();
-//   printf("\n");
-//   foundLink = find(4);
-//
-//   if(foundLink != NULL) {
-//      printf("Element found: ");
-//      printf("(%d,%d) ",foundLink->key,foundLink->data);
-//      printf("\n");
-//   } else {
-//      printf("Element not found.");
-//   }
-//
-//   printf("\n");
-//   sort();
-//
-//   printf("List after sorting the data: ");
-//   printList();
-//
-//   reverse(&raiz);
-//   printf("\nList after reversing the data: ");
-//   printList();
 }
