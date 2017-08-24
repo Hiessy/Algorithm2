@@ -10,25 +10,90 @@ eliminar un vertice, calcular el grado de cada vertice y determinar si es comple
 */
 
 typedef struct node {
-    char data;
-    struct node *next;
+    int data;
+    struct node *sig;
     struct subnode *sublista;
 }node;
 
 typedef struct subnode {
-    char data;
-    struct subnode *next;
+    int data;
+    struct subnode *sig;
 }subnode;
 
 struct node *raiz = NULL;
+
+
+
+node *borrarSubLista(node *cabeza){
+    if (cabeza->sublista == NULL)
+        return cabeza;
+
+    subnode *subtemp = cabeza->sublista;
+    cabeza->sublista = subtemp->sig;
+    free(subtemp);
+    cabeza = borrarSubLista(cabeza);
+    return cabeza;
+}
+
+subnode *borrarNodoSubLista(subnode *cabeza, int valor){
+    if (cabeza == NULL)
+        return cabeza;
+
+    printf("data: %c == valor: %c \n", cabeza->data, valor);
+    if (cabeza->data == valor) {
+        subnode *subtemp = cabeza->sig;
+        free(cabeza);
+        return subtemp;
+    }
+    cabeza->sig = borrarNodoSubLista(cabeza->sig, valor);
+    return cabeza;
+}
+
+node *borrarNodo(node *cabeza,int valor) {
+
+  if (cabeza == NULL)
+    return NULL;
+
+  if (cabeza->data == valor) {
+    node *temp;
+
+    temp = cabeza->sig;
+    cabeza = borrarSubLista(cabeza);
+    free(cabeza);
+    return temp;
+  }
+  cabeza->sig = borrarNodo(cabeza->sig, valor);
+
+  return cabeza;
+}
+
+void borrarArista(int valor){
+    node *aux = raiz;
+
+    while(aux != NULL){
+        printf("aux->data: %c  \n",aux->data);
+        subnode *subaux = aux->sublista;
+        aux->sublista = borrarNodoSubLista(subaux,valor);
+        aux = aux->sig;
+    }
+
+}
+
+bool opcionValida(int a){
+    if(a < 96 || a > 123){
+        printf("\n  La opcion debe estar entre [a...z]: ");
+        return true;
+    }
+    return false;
+}
 
 int menu(){
 		int opcion = 0;
 		while(opcion < 1 || opcion > 7)
 		{
             printf("\n  -------------- MENU --------------  \n");
-            printf("  1. Crear grafo\n"); // preguntar cuantos nodos -- asignarle un valor a cada nodo -- determinar que nodo esta conectado con que otro nodo
-            printf("  2. Mostrar grafo \n");
+            printf("  1. Crear grafo\n");
+            printf("  2. Mostrar lista \n");
             printf("  3. Agregando un vertice \n");
             printf("  4. Remover un vertice \n");
             printf("  5. Determinar si es completo \n");
@@ -41,192 +106,219 @@ int menu(){
 		return opcion;
 
 }
-//display the list
 
-void mostrarSubList(struct subnode *lista){
-    struct subnode *sbl = lista;
-    while(sbl != NULL) {
-            printf("=(%c)",sbl->data);
-            sbl= sbl->next;
-        }
-}
 void mostrar() {
 
-    struct node *ptr = raiz;
-    struct subnode *sbl;
+    node *aux = raiz;
+    subnode *subaux;
     printf("\n  El Grafo:\n [ \n");
-    while(ptr != NULL) {
-        sbl = ptr->sublista;
-        printf("(%c) ",ptr->data);
-        while(sbl != NULL) {
-            printf("=(%c)",sbl->data);
-            sbl= sbl->next;
+    while(aux != NULL) {
+        subaux = aux->sublista;
+        printf("(%c) ",aux->data);
+        while(subaux != NULL) {
+            printf("=(%c)",subaux->data);
+            subaux= subaux->sig;
         }
         printf("\n");
-        ptr = ptr->next;
+        aux = aux->sig;
     }
     printf(" ]\n");
 
 }
 
-void insertar(char data) {
-   //create a link
-    struct node *link = (struct node*) malloc(sizeof(struct node));
+void insertar(int data) {
+    node *link = (struct node*) malloc(sizeof(struct node));
     link->data = data;
-    link->next = NULL;
+    link->sig = NULL;
     link->sublista = NULL;
 
     if(raiz == NULL){
 
         raiz = link;
     }else{
-        struct node *aux = raiz;
-        while(aux->next != NULL ) {
-            aux = aux->next;
+        node *aux = raiz;
+        while(aux->sig != NULL ) {
+            aux = aux->sig;
         }
-        aux->next = link;
+        aux->sig = link;
     }
 }
 
-struct node* borrarNodo() {
-   struct node *temp = raiz;
-   raiz = raiz->next;
-   return temp;
-}
-
-bool isEmpty() {
+bool esVacio() {
    return raiz == NULL;
 }
-int length() {
-   int length = 0;
-   struct node *current;
 
-   for(current = raiz; current != NULL; current = current->next) {
-      length++;
+int longitud() {
+   int longitud = 0;
+   node *aux;
+
+   for(aux = raiz; aux != NULL; aux = aux->sig) {
+      longitud++;
    }
 
-   return length;
+   return longitud;
 }
-void insertarArista(char data, struct node *cabeza){
 
-    subnode *subnode = (struct subnode*) malloc(sizeof(struct subnode));
-    subnode->data = data;
-    subnode->next = NULL;
+void insertarArista(int data, node *cabeza){
+
+    subnode *subaux = (struct subnode*) malloc(sizeof(struct subnode));
+    subaux->data = data;
+    subaux->sig = NULL;
 
     if(cabeza->sublista == NULL){
-        cabeza->sublista = subnode;
+        cabeza->sublista = subaux;
     }else{
-        struct subnode *current = cabeza->sublista;
+        struct subnode *subauxbis = cabeza->sublista;
         while (true) {
-            if(current->next == NULL)
+            if(subauxbis->sig == NULL)
             {
-                current->next = subnode;
+                subauxbis->sig = subaux;
                 break;
             }
-            current = current->next;
-        };
-
-    }
-
-}
-struct node* buscarNodo(char key){
-    struct node* current = raiz;
-    if(raiz == NULL) {
-        printf("La lista esta vacia");
-        return NULL;
-    }
-    while(current->data != key) {
-        if(current->next == NULL) {
-            printf("El elemento no esta presente");
-            return NULL;
+            subauxbis = subauxbis->sig;
         }
-        current = current->next;
     }
-    return current;
 }
 
-bool buscar(int key){
+bool buscar(int valor){
 
-    struct node* current = raiz;
+    struct node* aux = raiz;
     if(raiz == NULL) {
         return false;
     }
 
-    while(current->data != key) {
-        if(current->next == NULL) {
+    while(aux->data != valor) {
+        if(aux->sig == NULL) {
             return false;
         }
-        current = current->next;
+        aux = aux->sig;
     }
     return true;
 }
 
-int buscarSubLista(int key, struct node *cabeza){
+struct node* buscarNodo(int valor){
+    struct node* aux = raiz;
+    if(raiz == NULL) {
+        return NULL;
+    }
+    while(aux->data != valor) {
+        if(aux->sig == NULL) {
+            return NULL;
+        }
+        aux = aux->sig;
+    }
+    return aux;
+}
+
+
+int contarSubLista(int valor, struct node *cabeza){
     int count = 0;
     struct subnode* aux = cabeza->sublista;
     while(aux != NULL) {
-        if(aux->data == key) {
+        if(aux->data == valor) {
             count++;
         }
-        aux = aux->next;
+        aux = aux->sig;
     }
 
     return count;
 }
 
-struct node* borrar(int key){
 
-   struct node* current = raiz;
-   struct node* previous = NULL;
+bool validarCompleto(int head){
+    int count = 0;
+    subnode *aux = buscarNodo(head)->sublista;
+    while(aux != NULL){
+        if(contarSubLista(aux->data,buscarNodo(head))!= 1){
+            return false;
+        }
+
+        if(!buscar(aux->data)){
+            return false;
+        }
+        count++;
+        aux = aux->sig;
+    }
+
+    //valido que tengo n-1 de tamño la sublista
+    if(count != (longitud()-1)){
+        return false;
+    }
+
+    return true;
+}
+
+void removerArista(){
+    // buscar si el vertice existe en la lista
+    // remover este vertice de la lista
+    int a;
+    printf("\n  Ingrese el vertice a eliminare: ");
+    do{
+        a = getchar();
+        fflush(stdin);
+    }while(opcionValida(a) || !buscar(a));
+
+    raiz = borrarNodo(raiz,a);
+    borrarArista(a);
+
+
+}
+
+void esCompleto(){
+    node *aux = raiz;
+    bool completo = true;
+
+    if(longitud() == 1){
+        printf("  ***No es completo***");
+        return;
+    }
+
+    while(aux != NULL){
+        completo = validarCompleto(aux->data);
+        if(!completo){
+            printf("  ***No es completo***");
+            return;
+        }
+        aux = aux->sig;
+    }
+
+    printf("  ***Es completo***");
+}
+
+
+struct node* borrar(int valor){
+
+   struct node* aux = raiz;
+   struct node* anterior = NULL;
 
    if(raiz == NULL) {
       return NULL;
    }
-   while(current->data != key) {
+   while(aux->data != valor) {
 
-      if(current->next == NULL) {
+      if(aux->sig == NULL) {
          return NULL;
       } else {
-         previous = current;
-         current = current->next;
+         anterior = aux;
+         aux = aux->sig;
       }
    }
-   if(current == raiz) {
-      raiz = raiz->next;
+   if(aux == raiz) {
+      raiz = raiz->sig;
    } else {
-      previous->next = current->next;
+      anterior->sig = aux->sig;
    }
-   return current;
+   return aux;
 }
 
-bool opcionValida(int a){
-    if(a < 96 || a > 123){
-        printf("\n  La opcion debe estar entre [a...z]: ");
-        return true;
-    }
-    return false;
-}
+void crearArista(int a){
 
-int generarAristasAutomaticamente(int size, char key){
-    int count = 0;
-    node* aux = raiz;
-    while(aux != NULL){
-        count += buscarSubLista():
-
-    }
-}
-
-/*
-*** TODO; NEED TO FINISH verificar si el vertices ya definio en algunas de las sublistas
-*/
-void crearArista(char a){
-
-    int size, n;
+    int tam, n;
     node* aux = buscarNodo(a);
     printf("\n  Con cuantos vertices se conecta %c?: ", aux->data);
-    scanf("%d", &size);
+    scanf("%d", &tam);
     fflush(stdin);
-    for( n=0;  n < size; n++){
+    for( n=0;  n < tam; n++){
         printf("\n  Ingresar el vertice numero %d: ",(n+1));
         do{
             printf("  ");
@@ -234,7 +326,9 @@ void crearArista(char a){
             fflush(stdin);
         }while(opcionValida(a) || !buscar(a));
         insertarArista(a,aux);
-
+        if(a != aux->data){
+            insertarArista(aux->data,buscarNodo(a));
+        }
     }
 }
 
@@ -251,19 +345,15 @@ void crearVertice(){
 }
 
 
-/*
-*** TODO; NEED TO FINISH verificar si el vertices ya definio en algunas de las sublistas
-*/
-
 void cargandoAristas(){
-    int size= -1,a = 0, n;
+    int tam= -1,a = 0, n;
     node* aux = raiz;
 
     while(aux != NULL){
         printf("\n  Con cuantos vertices se conecta %c?: ", aux->data); // preguntas cuantas aristas conecta este vertice
-        scanf("%d", &size); // size = 3
+        scanf("%d", &tam); // tam = 3
         fflush(stdin);
-        for( n=0;  n < size; n++){
+        for( n=0;  n < tam; n++){
             printf("\n  Ingresar el vertice numero %d: ",(n+1));
             do{
                 printf("  ");
@@ -272,16 +362,16 @@ void cargandoAristas(){
             }while(opcionValida(a) || !buscar(a));
             insertarArista(a,aux);
         }
-        aux = aux->next;
+        aux = aux->sig;
     }
 }
 
 void creandoGrafo(){
-    int size,i,a = 0;
+    int tam,i,a = 0;
     printf("\n  Elegir cuantos vertices tiene el grafo: ");
-    scanf("%d", &size);
+    scanf("%d", &tam);
     fflush(stdin);
-    for(i = 0; i < size; i++ ){
+    for(i = 0; i < tam; i++ ){
         printf("\n  Ingrese una letra [a...z] para el vertice (%d): ", (i+1));
         do{ //97
             a = getchar();
@@ -293,14 +383,13 @@ void creandoGrafo(){
 
 void borrarLista(){
    struct node* aux;
-   while (raiz != NULL)
-    {
+   while (raiz != NULL){
        aux = raiz;
-       raiz = raiz->next;
+       raiz = raiz->sig;
        free(aux);
     }
-
 }
+
 
 int main(){
 
@@ -311,7 +400,7 @@ int main(){
 		switch (opcion){
 
             case 1 :
-                printf("  Creando Grafo...", opcion);
+                printf("  Creando Grafo...");
                 if(raiz == NULL){
                    creandoGrafo();
                    cargandoAristas();
@@ -323,7 +412,8 @@ int main(){
             case 2 :
                 printf(  "  Mostrando Grafo...");
                 printf(  "  \n");
-                if(isEmpty()){
+
+                if(esVacio()){
                      printf(  "  El grafo esta vacio debe crear uno, opcion 1\n");
                 }else{
                     mostrar();
@@ -337,10 +427,12 @@ int main(){
             case 4 :
                 printf("  Remover un vertice...");
                 printf(  "  \n");
+                removerArista();
                 break;
             case 5 :
                 printf("  Determinar si es completo...");
                 printf(  "  \n");
+                esCompleto();
                 break;
             case 6 :
                 printf("  Borrando Lista...");
@@ -360,5 +452,5 @@ int main(){
        // sleep(1);
 	}while(opcion != 7);
 
-
+    return 0;
 }
